@@ -272,3 +272,304 @@ http_access allow external                                             # Added t
 
 sudo systemctl reload squid.service
 sudo systemctl restart squid.service
+
+# Setup and start the HTTP Server
+sudo dnf install -y httpd
+sudo systemctl enable httpd
+sudo systemctl start httpd
+sudo firewall-cmd --add-service=http --permanent
+sudo firewall-cmd --add-service=https --permanent
+
+
+# More information about configuring http server can be found in
+man httpd.conf
+ls /etc/httpd/
+conf  conf.d  conf.modules.d  logs  modules  run  state
+
+sudo vi /etc/httpd/conf/httpd.conf
+Listen 1.1.1.1:8080
+ServerAdmin  john@localhost
+ServerName   www.example.com:80 or 2.2.2.2
+
+DocumentRoot "/var/www/html"
+
+sudo mkdir /var/www/store/
+sudo mkdir /var/www/blog/
+sudo vi /etc/httpd/conf.d/two-websites.conf
+<VirtualHost *:80>
+        ServerName store.example.com
+        DocumentRoot /var/www/store/
+</VirtualHost>
+
+<VirtualHost *:80>
+        ServerName blog.example.com
+        DocumentRoot /var/www/blog/
+</VirtualHost>
+
+<VirtualHost 1.1.1.1:80>
+        ServerName blog.example.com
+        DocumentRoot /var/www/blog/
+</VirtualHost>
+
+sudo apachectl configtest
+sudo systemctl reload httpd.service
+
+# TLS/SSL Settings
+sudo vi /etc/httpd/conf.d/ssl.conf
+Listen 443 https
+
+sudo vi /etc/httpd/conf.d/two-websites.conf
+
+<VirtualHost *:443>
+        SSLName www.example.com
+        SSLEngine on
+        SSLCertificateFile "Path to Certificate"
+        SSLCertificateKeyFile "Path to keyfile"
+</VirtualHost>
+
+# Modules Location for httpd deamon 
+sudo ls /etc/httpd/conf.modules.d/
+00-base.conf  00-brotli.conf  00-dav.conf  00-lua.conf  00-mpm.conf  00-optional.conf  00-proxy.conf  00-systemd.conf  01-cgi.conf  10-h2.conf  10-proxy_h2.conf  README
+
+sudo dnf install -y mod_ssl
+sudo ls /etc/httpd/conf.modules.d/
+00-base.conf    00-dav.conf  00-mpm.conf       00-proxy.conf  00-systemd.conf  10-h2.conf        README
+00-brotli.conf  00-lua.conf  00-optional.conf  00-ssl.conf    01-cgi.conf      10-proxy_h2.conf
+
+sudo vi /etc/httpd/conf.modules.d/00-mpm.conf
+#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
+LoadModule mpm_event_module modules/mod_mpm_event.so
+
+LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
+#LoadModule mpm_event_module modules/mod_mpm_event.so
+
+# Below we can uncomment modules that we need
+sudo vi /etc/httpd/conf.modules.d/00-optional.conf
+#
+# This file lists modules included with the Apache HTTP Server
+# which are not enabled by default.
+# 
+
+#LoadModule asis_module modules/mod_asis.so
+#LoadModule buffer_module modules/mod_buffer.so
+#LoadModule heartbeat_module modules/mod_heartbeat.so
+#LoadModule heartmonitor_module modules/mod_heartmonitor.so
+#LoadModule usertrack_module modules/mod_usertrack.so
+#LoadModule dialup_module modules/mod_dialup.so
+#LoadModule charset_lite_module modules/mod_charset_lite.so
+#LoadModule log_debug_module modules/mod_log_debug.so
+#LoadModule log_forensic_module modules/mod_log_forensic.so
+#LoadModule ratelimit_module modules/mod_ratelimit.so
+#LoadModule reflector_module modules/mod_reflector.so
+#LoadModule sed_module modules/mod_sed.so
+#LoadModule speling_module modules/mod_speling.so
+
+# Below we can comment out things that we dont need
+sudo vi /etc/httpd/conf.modules.d/00-base.conf
+
+#
+# This file loads most of the modules included with the Apache HTTP
+# Server itself.
+#
+
+LoadModule access_compat_module modules/mod_access_compat.so
+LoadModule actions_module modules/mod_actions.so
+LoadModule alias_module modules/mod_alias.so
+LoadModule allowmethods_module modules/mod_allowmethods.so
+LoadModule auth_basic_module modules/mod_auth_basic.so
+LoadModule auth_digest_module modules/mod_auth_digest.so
+LoadModule authn_anon_module modules/mod_authn_anon.so
+LoadModule authn_core_module modules/mod_authn_core.so
+LoadModule authn_dbd_module modules/mod_authn_dbd.so
+LoadModule authn_dbm_module modules/mod_authn_dbm.so
+LoadModule authn_file_module modules/mod_authn_file.so
+LoadModule authn_socache_module modules/mod_authn_socache.so
+LoadModule authz_core_module modules/mod_authz_core.so
+LoadModule authz_dbd_module modules/mod_authz_dbd.so
+LoadModule authz_dbm_module modules/mod_authz_dbm.so
+LoadModule authz_groupfile_module modules/mod_authz_groupfile.so
+LoadModule authz_host_module modules/mod_authz_host.so
+LoadModule authz_owner_module modules/mod_authz_owner.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule autoindex_module modules/mod_autoindex.so
+LoadModule cache_module modules/mod_cache.so
+LoadModule cache_disk_module modules/mod_cache_disk.so
+LoadModule cache_socache_module modules/mod_cache_socache.so
+LoadModule data_module modules/mod_data.so
+LoadModule dbd_module modules/mod_dbd.so
+LoadModule deflate_module modules/mod_deflate.so
+LoadModule dir_module modules/mod_dir.so
+LoadModule dumpio_module modules/mod_dumpio.so
+LoadModule echo_module modules/mod_echo.so
+LoadModule env_module modules/mod_env.so
+LoadModule expires_module modules/mod_expires.so
+LoadModule ext_filter_module modules/mod_ext_filter.so
+LoadModule filter_module modules/mod_filter.so
+LoadModule headers_module modules/mod_headers.so
+LoadModule include_module modules/mod_include.so
+LoadModule info_module modules/mod_info.so
+LoadModule log_config_module modules/mod_log_config.so
+LoadModule logio_module modules/mod_logio.so
+LoadModule macro_module modules/mod_macro.so
+LoadModule mime_magic_module modules/mod_mime_magic.so
+LoadModule mime_module modules/mod_mime.so
+LoadModule negotiation_module modules/mod_negotiation.so
+LoadModule remoteip_module modules/mod_remoteip.so
+LoadModule reqtimeout_module modules/mod_reqtimeout.so
+LoadModule request_module modules/mod_request.so
+LoadModule rewrite_module modules/mod_rewrite.so
+LoadModule setenvif_module modules/mod_setenvif.so
+LoadModule slotmem_plain_module modules/mod_slotmem_plain.so
+LoadModule slotmem_shm_module modules/mod_slotmem_shm.so
+LoadModule socache_dbm_module modules/mod_socache_dbm.so
+LoadModule socache_memcache_module modules/mod_socache_memcache.so
+LoadModule socache_redis_module modules/mod_socache_redis.so
+LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
+LoadModule status_module modules/mod_status.so
+LoadModule substitute_module modules/mod_substitute.so
+LoadModule suexec_module modules/mod_suexec.so
+LoadModule unique_id_module modules/mod_unique_id.so
+LoadModule unixd_module modules/mod_unixd.so
+LoadModule userdir_module modules/mod_userdir.so
+LoadModule version_module modules/mod_version.so
+LoadModule vhost_alias_module modules/mod_vhost_alias.so
+LoadModule watchdog_module modules/mod_watchdog.so
+
+# Configure HTTP Server Logs - Access log and Error log
+sudo vi /etc/httpd/conf/httpd.conf
+ServerRoot "/etc/httpd"
+ErrorLog "logs/error_log" #A symbolic link to 
+sudo ls  /var/log/httpd/
+access_log  error_log
+
+LogLevel warn 
+
+sudo vi /etc/httpd/conf.d/two-websites.conf
+<VirtualHost *:80>
+        ServerName store.example.com
+        DocumentRoot /var/www/store/
+        CustomLog /var/log/httpd/store.example.com_access.log combined  # Added
+        ErrorLog /var/log/httpd/store.example.com_error.log             # Added
+</VirtualHost>
+
+<VirtualHost *:80>
+        ServerName blog.example.com
+        DocumentRoot /var/www/blog/
+</VirtualHost>
+
+sudo systemctl reload httpd.conf
+
+# Restrict Access to a web page
+sudo mv /etc/httpd/conf.d/two-websites.conf /etc/httpd/conf.d/two-websites.conf.disabled
+sudo systemctl releoad httpd.service
+
+sudo vi /etc/httpd/conf/httpd.conf
+#
+# DocumentRoot: The directory out of which you will serve your
+# documents. By default, all requests are taken from this directory, but
+# symbolic links and aliases may be used to point to other locations.
+#
+DocumentRoot "/var/www/html"
+
+#
+# Relax access to content within /var/www.
+#
+<Directory "/var/www">
+    AllowOverride None
+    # Allow open access:
+    Require all granted
+</Directory>
+
+# Further relax access to the default document root:
+<Directory "/var/www/html">
+    #
+    # Possible values for the Options directive are "None", "All",
+    # or any combination of:
+    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+    #
+    # Note that "MultiViews" must be named *explicitly* --- "Options All"
+    # doesn't give it to you.
+    #
+    # The Options directive is both complicated and important.  Please see
+    # http://httpd.apache.org/docs/2.4/mod/core.html#options
+    # for more information.
+    #
+    # Options Indexes FollowSymLinks                                        Commented Out
+    Options  FollowSymLinks                                                 # Without Indexes Options
+    #
+    # AllowOverride controls what directives may be placed in .htaccess files.
+    # It can be "All", "None", or any combination of the keywords:
+    #   Options FileInfo AuthConfig Limit
+    #
+    AllowOverride None
+
+    #
+    # Controls who can get stuff from this server.
+    #
+    Require all granted
+</Directory>
+# These lines we can edit  
+Options Indexes FollowSymLinks # To disable browsing files and symbolic links
+ AllowOverride None            # To manage special files like .htaccess  or .htpasswd file we can modify this with None or All or Have both of them there
+
+ # We can choose to give access(allow or denied) to users by creating the relevant block as below
+ <Directory "/var/www/html/test-directory">
+    AllowOverride None
+    # Allow open access:
+    Require all denied
+</Directory>
+
+# We can opt to give a select users access based on IP
+ <Directory "/var/www/html/test-directory">
+    AllowOverride None
+    # Allow open access:
+    Require ip 1.1.1.1 8.8.8.8
+</Directory>
+
+sudo systemctl reload httpd.service
+
+#
+# The following lines prevent .htaccess and .htpasswd files from being 
+# viewed by Web clients. 
+#
+<Files ".ht*">
+    Require all denied
+</Files>
+
+<Files ".txt">
+    Require all denied
+</Files>
+
+sudo systemctl reload httpd.service
+
+ <Directory "/var/www/html/test-directory">
+    AllowOverride None
+    # Allow open access:
+    Require ip 1.1.1.1 8.8.8.8
+    AuthType Basic
+    AuthBasicProvider file
+    AuthName "Secret Admin Page"
+    AuthUserFile /etc/httpd/password
+    Require valid-user
+</Directory>
+
+# 
+sudo htpasswd -c  /etc/httpd/password john
+sudo htpasswd  /etc/httpd/password second_user
+
+# Delet users on the password file we can use below
+sudo htpasswd  -D /etc/httpd/password second_user
+
+# Configure a database server
+sudo dnf install -y mariadb-server
+sudo systemctl enable mariadb
+sudo systemctl start mariadb
+sudo firewall-cmd --add-service=mysql --permanent
+sudo mysql -u root
+sudo mysql_secure_installation
+cat /etc/my.cnf
+sudo vi /etc/my.cnf.d/mariadb-server.cnf
+
+# Manage and configure containers
+
+
