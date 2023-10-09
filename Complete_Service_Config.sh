@@ -571,5 +571,11 @@ cat /etc/my.cnf
 sudo vi /etc/my.cnf.d/mariadb-server.cnf
 
 # Manage and configure containers
+docker search nginx
+docker pull nginx
+docker rmi -f hello-world
+docker run --detach --publish 8080:80 --name mywebserver nginx
+
+
 
 
