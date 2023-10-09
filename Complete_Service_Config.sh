@@ -576,6 +576,56 @@ docker pull nginx
 docker rmi -f hello-world
 docker run --detach --publish 8080:80 --name mywebserver nginx
 
+docker ps -all
+CONTAINER ID   IMAGE     COMMAND                  CREATED              STATUS              PORTS                                   NAMES
+6a914c9eb5b1   nginx     "/docker-entrypoint.…"   About a minute ago   Up About a minute   0.0.0.0:8080->80/tcp, :::8080->80/tcp   mywebserver
+
+sudo dnf -y install nc
+nc localhost 8080
+
+docker start <Container_Name>
+sudo docker ps --all
+CONTAINER ID   IMAGE          COMMAND                  CREATED             STATUS                         PORTS                                   NAMES
+6a914c9eb5b1   nginx          "/docker-entrypoint.…"   About an hour ago   Up About an hour               0.0.0.0:8080->80/tcp, :::8080->80/tcp   mywebserver
+9b7802b5fd30   nginx          "/docker-entrypoint.…"   About an hour ago   Exited (0) About an hour ago                                           unruffled_wright
+7a4ca7d802ea   9c7a54a9a43c   "/hello"                 9 days ago          Exited (0) 9 days ago                                                  musing_lovelace
+
+docker rm unruffled_wright 
+docker rm musing_lovelace
+
+sudo docker ps --all
+CONTAINER ID   IMAGE     COMMAND                  CREATED             STATUS             PORTS                                   NAMES
+6a914c9eb5b1   nginx     "/docker-entrypoint.…"   About an hour ago   Up About an hour   0.0.0.0:8080->80/tcp, :::8080->80/tcp   mywebserver
+
+docker stop mywebserver
+docker rm mywebserver
+docker rmi nginx
+
+docker images -a
+REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+man docker run
+/restart policy
+
+docker run --detach --publish 8081:80 --restart always --name mywebserver2 nginx
+
+# Creating my own Image
+mkdir myimage
+cd myimage/
+vi index.html
+vi Dockerfile
+cd ../
+docker build --tag cedrickiama/customnginx:1.0 myimage
+
+# Lets run a container from the image created.
+docker run --detach --publish 8082:80 --restart always --name mywebserver3 cedrickiama/customnginx:1.0
+docker run --detach --publish 8082:80 --restart always --name mywebserver3 customnginx:1.0
+
+nc localhost 8082
+GET /
+Welcome to Containers using Docker, remember, Image has to be available and then proceed to create the Images.
+
+
 
 
 
