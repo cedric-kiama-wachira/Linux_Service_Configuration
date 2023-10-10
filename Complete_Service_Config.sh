@@ -625,7 +625,86 @@ nc localhost 8082
 GET /
 Welcome to Containers using Docker, remember, Image has to be available and then proceed to create the Images.
 
+# Virtual Machines QEMU(Quick Emulator) KVM(Kernel Based Vrtual Machine)
 
+sudo dnf install -y libvirt qemu-kvm
+vi testmachine.xml
+<domain type="qemu">
+        <name>TestMachine</name>
+        <memory unit="GiB">1</memory>
+        <vcpu>1</vcpu>
+        <os>
+                <type arch='x86_64'>hvm</type>
+        </os>
+</domain>
 
+virsh define testmachine.xml
+Domain 'TestMachine' defined from testmachine.xml
 
+virsh list --all
+ Id   Name          State
+------------------------------
+ -    TestMachine   shut off
 
+virsh start TestMachine
+Domain 'TestMachine' started
+
+ virsh list --all
+ Id   Name          State
+-----------------------------
+ 1    TestMachine   running
+
+ virsh reset  TestMachine
+ virsh reboot TestMachine
+
+ virsh list --all
+ Id   Name          State
+-----------------------------
+ 1    TestMachine   running
+
+virsh shutdown
+virsh poweroff
+virsh destroy
+
+ virsh dominfo TestMachine
+Id:             1
+Name:           TestMachine
+UUID:           25070b9e-b7c8-40ea-b496-dcdc45144444
+OS Type:        hvm
+State:          running
+CPU(s):         1
+CPU time:       14.6s
+Max memory:     1048576 KiB
+Used memory:    1048576 KiB
+Persistent:     yes
+Autostart:      disable
+Managed save:   no
+Security model: selinux
+Security DOI:   0
+Security label: unconfined_u:unconfined_r:svirt_tcg_t:s0:c84,c727 (enforcing)
+Messages:       tainted: use of deprecated configuration settings
+                deprecated configuration: machine type 'pc-i440fx-rhel7.6.0'
+                deprecated configuration: CPU model 'qemu64
+
+virsh help vcpu
+virsh setvcpus TestMachine 2 --config --maximum
+virsh setvcpus TestMachine 2 --config 
+
+sudo apt install libosinfo-bin
+sudo dnf install virt-manager -y
+sudo apt install libguestfs-tools
+
+virt-builder --list  |  grep ubuntu
+
+ubuntu-10.04             x86_64     Ubuntu 10.04 (Lucid)
+ubuntu-12.04             x86_64     Ubuntu 12.04 (Precise)
+ubuntu-14.04             x86_64     Ubuntu 14.04 (Trusty)
+ubuntu-16.04             x86_64     Ubuntu 16.04 (Xenial)
+ubuntu-18.04             x86_64     Ubuntu 18.04 (bionic)
+ubuntu-20.04             x86_64     Ubuntu 20.04 (focal)
+
+virt-builder --list  |  grep centos
+
+sudo virt-builder centosstream-9 --format qcow2 --output /var/lib/libvirt/images/vm1-el9vb.qcow2 --root-password locked:disabled --hostname vm1-el9vb.example.com --selinux-relabel --firstboot-command 'localectl set-keymap de-nodeadkeys' --firstboot-command 'useradd -m -G wheel -p "" hostmin ; chage -d 0 hostmin'
+
+sudo virt-install  --name vm1-el9vb --memory 2048  --cpu host --vcpus 2 --graphics none --import  --disk /var/lib/libvirt/images/vm1-el9vb.qcow2,format=qcow2,bus=virtio --network type=direct,source=wlp3s0,source_mode=bridge,model=virtio --network bridge=virbr0,model=virtio
